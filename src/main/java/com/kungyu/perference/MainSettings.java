@@ -6,6 +6,7 @@ import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
 import com.intellij.util.xmlb.XmlSerializerUtil;
 import com.kungyu.model.UrlPair;
+import lombok.Data;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -19,8 +20,6 @@ import java.util.Map;
 @State(name = "MainSettings", storages = {@Storage("main-setting.xml")})
 public class MainSettings implements PersistentStateComponent<MainSettings> {
 
-    private Map<String, UrlPair> settingMap;
-
     public Map<String, UrlPair> getSettingMap() {
         return settingMap;
     }
@@ -28,6 +27,9 @@ public class MainSettings implements PersistentStateComponent<MainSettings> {
     public void setSettingMap(Map<String, UrlPair> settingMap) {
         this.settingMap = settingMap;
     }
+
+    private Map<String, UrlPair> settingMap;
+
 
     public static MainSettings getInstance() {
         return ServiceManager.getService(MainSettings.class);

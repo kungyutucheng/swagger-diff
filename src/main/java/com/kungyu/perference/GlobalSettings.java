@@ -1,10 +1,10 @@
 package com.kungyu.perference;
 
-import com.google.common.collect.Maps;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.ui.Messages;
 import com.kungyu.model.UrlPair;
+import com.kungyu.util.HttpUtil;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.Nls;
@@ -31,10 +31,6 @@ public class GlobalSettings implements Configurable, Configurable.Composite {
     private JButton addProjectBtn;
 
     private MainSettings mainSettings = MainSettings.getInstance();
-
-    private static final String NEW_URL = "newUrl";
-
-    private static final String OLD_URL = "oldUrl";
 
     @Override
     @Nls(capitalization = Nls.Capitalization.Title)
@@ -99,6 +95,27 @@ public class GlobalSettings implements Configurable, Configurable.Composite {
                 // 更新下拉列表
                 projectCombox.addItem(newProjectName);
             }
+        });
+
+        beginDiffBtn.addActionListener(e -> {
+            String selectedProjectName = (String) projectCombox.getSelectedItem();
+            if (StringUtils.isBlank(selectedProjectName)) {
+                Messages.showErrorDialog("请选中一个项目名称","对比错误");
+                return;
+            }
+            String oldUrl = StringUtils.trim(oldUrlTextArea.getText());
+            if (StringUtils.isBlank(oldUrl)) {
+                Messages.showErrorDialog("前一个版本URL不能为空","对比错误");
+                return;
+            }
+            String newUrl = StringUtils.trim(newUrlTextArea.getText());
+            if (StringUtils.isBlank(newUrl)) {
+                Messages.showErrorDialog("后一个版本URL不能为空", "对比错误");
+                return;
+            }
+            String newUrlResponseStr = HttpUtil.doPost(newUrl, null);
+            String oldUrlResponseStr = HttpUtil.doPost(oldUrl, null);
+
         });
         return mainPanel;
     }
