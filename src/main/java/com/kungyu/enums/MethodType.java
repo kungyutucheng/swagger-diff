@@ -1,5 +1,11 @@
 package com.kungyu.enums;
 
+
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.Arrays;
+import java.util.Optional;
+
 /**
  * @author wengyongcheng
  * @since 2020/6/30 10:09 上午
@@ -22,5 +28,9 @@ public enum MethodType {
 
     public String getName() {
         return name;
+    }
+
+    public static Optional<MethodType> getByName(String name) {
+        return Arrays.stream(values()).filter(item -> StringUtils.equals(item.getName(), name)).findFirst();
     }
 }

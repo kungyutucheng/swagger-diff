@@ -16,8 +16,8 @@
 
     <extensions defaultExtensionNs="com.intellij">
         <!-- Add your extensions here -->
-        <applicationService serviceImplementation="com.kungyu.perference.MainSettings"/>
-        <applicationConfigurable instance="com.kungyu.perference.GlobalSettings" dynamic="true"/>
+        <applicationService serviceImplementation="com.kungyu.ui.MainSettings"/>
+        <applicationConfigurable instance="com.kungyu.ui.GlobalSettings" dynamic="true"/>
     </extensions>
 
     <actions>

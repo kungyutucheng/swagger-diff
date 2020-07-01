@@ -1,12 +1,11 @@
-package com.kungyu.perference;
+package com.kungyu.ui;
 
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
 import com.intellij.util.xmlb.XmlSerializerUtil;
-import com.kungyu.model.UrlPair;
-import lombok.Data;
+import com.kungyu.model.v2.UrlPair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

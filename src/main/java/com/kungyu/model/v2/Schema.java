@@ -1,6 +1,9 @@
-package com.kungyu.model;
+package com.kungyu.model.v2;
 
+import com.alibaba.fastjson.JSONObject;
+import com.google.common.base.Converter;
 import com.kungyu.enums.Format;
+import org.jetbrains.annotations.NotNull;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -70,6 +73,23 @@ public class Schema {
     private ExternalDocumentation externalDocumentation;
 
     private String example;
+
+    public static Schema convertToSchema(JSONObject schemaJson) {
+        return new SchemaConverter().doBackward(schemaJson);
+    }
+
+    private static final class SchemaConverter extends Converter<Schema, JSONObject> {
+
+        @Override
+        protected JSONObject doForward(@NotNull Schema schema) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        protected Schema doBackward(@NotNull JSONObject schemaJson) {
+            return null;
+        }
+    }
 
     public String getRef() {
         return ref;

@@ -1,4 +1,4 @@
-package com.kungyu.model;
+package com.kungyu.model.v2;
 
 /**
  * @author wengyongcheng
@@ -13,7 +13,6 @@ public class Xml {
     private String prefix;
 
     private Boolean attribute;
-
 
     private Boolean wrapped;
 

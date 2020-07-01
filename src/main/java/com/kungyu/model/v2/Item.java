@@ -1,38 +1,25 @@
-package com.kungyu.model;
+package com.kungyu.model.v2;
 
-import com.kungyu.enums.Format;
-import com.kungyu.enums.InType;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import com.google.common.base.Converter;
 import com.sun.org.apache.xpath.internal.operations.Bool;
+import org.jetbrains.annotations.NotNull;
 
 import java.math.BigDecimal;
 import java.util.List;
 
 /**
  * @author wengyongcheng
- * @since 2020/6/30 10:59 上午
+ * @since 2020/6/30 2:55 下午
  */
-public class Parameter {
+public class Item {
 
-    private String name;
-
-    private InType in;
-
-    private String description;
-
-    private Boolean required;
-
-
-    // in = body
-    private Schema schema;
-
-    // in = others
     private String type;
 
-    private Format format;
+    private String format;
 
-    private Boolean allowEmptyValue;
-
-    private Items items;
+    private Item items;
 
     private String collectionFormat;
 
@@ -62,46 +49,53 @@ public class Parameter {
 
     private BigDecimal multipleOf;
 
-
-    public String getName() {
-        return name;
+    public static Item convertToItem(JSONObject itemJson) {
+        return new ItemConverter().doBackward(itemJson);
     }
 
-    public void setName(String name) {
-        this.name = name;
+    private static final class ItemConverter extends Converter<Item, JSONObject> {
+
+        @Override
+        protected JSONObject doForward(@NotNull Item item) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        protected Item doBackward(@NotNull JSONObject itemJson) {
+            Item item = new Item();
+
+            item.setType(itemJson.getString("type"));
+            item.setFormat(itemJson.getString("format"));
+
+            JSONObject innerItemJson = itemJson.getJSONObject("items");
+            if (innerItemJson != null) {
+                item.setItems(Item.convertToItem(innerItemJson));
+            }
+
+            item.setCollectionFormat(itemJson.getString("collectionFormat"));
+            item.setDefaultValue(itemJson.getString("defaultValue"));
+
+            item.setMaximum(itemJson.getBigDecimal("maximum"));
+            item.setExclusiveMaximum(itemJson.getBoolean("exclusiveMaximum"));
+            item.setMinimum(itemJson.getBigDecimal("minimum"));
+            item.setExclusiveMinimum(itemJson.getBoolean("exclusiveMinimum"));
+            item.setMaxLength(itemJson.getInteger("maxLength"));
+            item.setMinLength(itemJson.getInteger("minLength"));
+            item.setPattern(itemJson.getString("pattern"));
+            item.setMaxItems(itemJson.getInteger("maxItems"));
+            item.setMinItems(itemJson.getInteger("minItems"));
+            item.setUniqueItems(itemJson.getBoolean("uniqueItems"));
+            JSONArray enumValueArray = itemJson.getJSONArray("enum");
+            if (enumValueArray != null && enumValueArray.size() > 0) {
+                item.setEnumValues(enumValueArray.toJavaList(String.class));
+            }
+
+            item.setMultipleOf(itemJson.getBigDecimal("multipleOf"));
+
+            return item;
+        }
     }
 
-    public InType getIn() {
-        return in;
-    }
-
-    public void setIn(InType in) {
-        this.in = in;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public Boolean getRequired() {
-        return required;
-    }
-
-    public void setRequired(Boolean required) {
-        this.required = required;
-    }
-
-    public Schema getSchema() {
-        return schema;
-    }
-
-    public void setSchema(Schema schema) {
-        this.schema = schema;
-    }
 
     public String getType() {
         return type;
@@ -111,27 +105,19 @@ public class Parameter {
         this.type = type;
     }
 
-    public Format getFormat() {
+    public String getFormat() {
         return format;
     }
 
-    public void setFormat(Format format) {
+    public void setFormat(String format) {
         this.format = format;
     }
 
-    public Boolean getAllowEmptyValue() {
-        return allowEmptyValue;
-    }
-
-    public void setAllowEmptyValue(Boolean allowEmptyValue) {
-        this.allowEmptyValue = allowEmptyValue;
-    }
-
-    public Items getItems() {
+    public com.kungyu.model.v2.Item getItems() {
         return items;
     }
 
-    public void setItems(Items items) {
+    public void setItems(com.kungyu.model.v2.Item items) {
         this.items = items;
     }
 

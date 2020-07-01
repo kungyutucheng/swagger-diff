@@ -1,4 +1,4 @@
-package com.kungyu.model;
+package com.kungyu.model.v2;
 
 
 import java.io.Serializable;
