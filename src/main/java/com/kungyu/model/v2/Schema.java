@@ -7,7 +7,10 @@ import com.kungyu.constant.CommonConstant;
 import org.jetbrains.annotations.NotNull;
 
 import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author wengyongcheng
@@ -61,7 +64,7 @@ public class Schema {
 
     private Schema allOf;
 
-    private Schema properties;
+    private Map<String, Schema> properties;
 
     private Schema additionalProperties;
 
@@ -130,7 +133,12 @@ public class Schema {
 
             JSONObject propertiesJson = schemaJson.getJSONObject("properties");
             if (propertiesJson != null) {
-                schema.setProperties(Schema.convertToSchema(propertiesJson));
+                Set<String> propertyNameSet = propertiesJson.keySet();
+                Map<String, Schema> properties = new HashMap<>(propertyNameSet.size());
+                for (String propertyName : propertyNameSet) {
+                    properties.put(propertyName, Schema.convertToSchema(propertiesJson.getJSONObject(propertyName)));
+                }
+                schema.setProperties(properties);
             }
 
             JSONObject additionalProperties = schemaJson.getJSONObject("additionalProperties");
@@ -341,11 +349,11 @@ public class Schema {
         this.allOf = allOf;
     }
 
-    public Schema getProperties() {
+    public Map<String, Schema> getProperties() {
         return properties;
     }
 
-    public void setProperties(Schema properties) {
+    public void setProperties(Map<String, Schema> properties) {
         this.properties = properties;
     }
 
