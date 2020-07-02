@@ -1,5 +1,9 @@
 package com.kungyu.model.v2;
 
+import com.alibaba.fastjson.JSONObject;
+import com.google.common.base.Converter;
+import org.jetbrains.annotations.NotNull;
+
 /**
  * @author wengyongcheng
  * @since 2020/6/30 11:38 上午
@@ -15,6 +19,29 @@ public class Xml {
     private Boolean attribute;
 
     private Boolean wrapped;
+
+    public static Xml convertToXml(JSONObject xmlJson) {
+        return new XmlConverter().doBackward(xmlJson);
+    }
+
+    private static final class XmlConverter extends Converter<Xml, JSONObject> {
+
+        @Override
+        protected JSONObject doForward(@NotNull Xml xml) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        protected Xml doBackward(@NotNull JSONObject xmlJson) {
+            Xml xml = new Xml();
+            xml.setName(xmlJson.getString("name"));
+            xml.setNamespace(xmlJson.getString("namespace"));
+            xml.setPrefix(xmlJson.getString("prefix"));
+            xml.setAttribute(xmlJson.getBoolean("attribute"));
+            xml.setWrapped(xmlJson.getBoolean("wrapped"));
+            return xml;
+        }
+    }
 
     public String getName() {
         return name;

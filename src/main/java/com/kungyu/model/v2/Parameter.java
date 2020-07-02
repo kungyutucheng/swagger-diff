@@ -1,5 +1,6 @@
 package com.kungyu.model.v2;
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.base.Converter;
 import com.kungyu.enums.Format;
@@ -30,7 +31,7 @@ public class Parameter {
     // in = others
     private String type;
 
-    private Format format;
+    private String format;
 
     private Boolean allowEmptyValue;
 
@@ -77,7 +78,47 @@ public class Parameter {
 
         @Override
         protected Parameter doBackward(@NotNull JSONObject parameterJson) {
-            return null;
+            Parameter parameter = new Parameter();
+
+            parameter.setName(parameterJson.getString("name"));
+            InType.getByName(parameterJson.getString("in")).ifPresent(parameter::setIn);
+            parameter.setDescription(parameterJson.getString("description"));
+            parameter.setRequired(parameterJson.getBoolean("required"));
+
+            JSONObject schemaJson = parameterJson.getJSONObject("schema");
+            if (schemaJson != null) {
+                parameter.setSchema(Schema.convertToSchema(schemaJson));
+            }
+            parameter.setType(parameterJson.getString("type"));
+            parameter.setFormat(parameterJson.getString("format"));
+            parameter.setAllowEmptyValue(parameterJson.getBoolean("allowEmptyValue"));
+
+            JSONObject itemJson = parameterJson.getJSONObject("items");
+            if (itemJson != null) {
+                parameter.setItems(Item.convertToItem(itemJson));
+            }
+
+            parameter.setCollectionFormat(parameterJson.getString("collectionFormat"));
+            parameter.setDefaultValue(parameterJson.getString("defaultValue"));
+
+            parameter.setMaximum(parameterJson.getBigDecimal("maximum"));
+            parameter.setExclusiveMaximum(parameterJson.getBoolean("exclusiveMaximum"));
+            parameter.setMinimum(parameterJson.getBigDecimal("minimum"));
+            parameter.setExclusiveMinimum(parameterJson.getBoolean("exclusiveMinimum"));
+            parameter.setMaxLength(parameterJson.getInteger("maxLength"));
+            parameter.setMinLength(parameterJson.getInteger("minLength"));
+            parameter.setPattern(parameterJson.getString("pattern"));
+            parameter.setMaxItems(parameterJson.getInteger("maxItems"));
+            parameter.setMinItems(parameterJson.getInteger("minItems"));
+            parameter.setUniqueItems(parameterJson.getBoolean("uniqueItems"));
+            JSONArray enumValueArray = parameterJson.getJSONArray("enum");
+            if (enumValueArray != null && enumValueArray.size() > 0) {
+                parameter.setEnumValues(enumValueArray.toJavaList(String.class));
+            }
+
+            parameter.setMultipleOf(parameterJson.getBigDecimal("multipleOf"));
+
+            return parameter;
         }
     }
 
@@ -130,11 +171,11 @@ public class Parameter {
         this.type = type;
     }
 
-    public Format getFormat() {
+    public String getFormat() {
         return format;
     }
 
-    public void setFormat(Format format) {
+    public void setFormat(String format) {
         this.format = format;
     }
 

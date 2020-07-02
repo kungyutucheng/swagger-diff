@@ -17,6 +17,7 @@ public enum MethodType {
     PUT("put"),
     PATCH("patch"),
     DELETE("delete"),
+    OPTIONS("options"),
     HEADER("header");
 
     MethodType(String name) {

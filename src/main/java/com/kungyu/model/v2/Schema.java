@@ -1,8 +1,9 @@
 package com.kungyu.model.v2;
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.base.Converter;
-import com.kungyu.enums.Format;
+import com.kungyu.constant.CommonConstant;
 import org.jetbrains.annotations.NotNull;
 
 import java.math.BigDecimal;
@@ -16,7 +17,7 @@ public class Schema {
 
     private String ref;
 
-    private Format format;
+    private String format;
 
     private String title;
 
@@ -87,7 +88,72 @@ public class Schema {
 
         @Override
         protected Schema doBackward(@NotNull JSONObject schemaJson) {
-            return null;
+            Schema schema = new Schema();
+
+            schema.setRef(schemaJson.getString("ref"));
+            schema.setTitle(schemaJson.getString("title"));
+            schema.setFormat(schemaJson.getString("format"));
+            schema.setDescription(schemaJson.getString("description"));
+            schema.setDefaultValue(schemaJson.getString("defaultValue"));
+
+            schema.setMultipleOf(schemaJson.getBigDecimal("multipleOf"));
+            schema.setMaximum(schemaJson.getBigDecimal("maximum"));
+            schema.setExclusiveMaximum(schemaJson.getBoolean("exclusiveMaximum"));
+            schema.setMinimum(schemaJson.getBigDecimal("minimum"));
+            schema.setExclusiveMinimum(schemaJson.getBoolean("exclusiveMinimum"));
+            schema.setMaxLength(schemaJson.getInteger("maxLength"));
+            schema.setMinLength(schemaJson.getInteger("minLength"));
+            schema.setPattern(schemaJson.getString("pattern"));
+            schema.setMaxItems(schemaJson.getInteger("maxItems"));
+            schema.setMinItems(schemaJson.getInteger("minItems"));
+            schema.setUniqueItems(schemaJson.getBoolean("uniqueItems"));
+            schema.setMaxProperties(schemaJson.getInteger("maxProperties"));
+            schema.setMinProperties(schemaJson.getInteger("minProperties"));
+            schema.setRequired(schemaJson.getBoolean("required"));
+
+            JSONArray enumValueArray = schemaJson.getJSONArray("enum");
+            if (enumValueArray != null && enumValueArray.size() > 0) {
+                schema.setEnumValues(enumValueArray.toJavaList(String.class));
+            }
+
+            schema.setType(schemaJson.getString("type"));
+
+            JSONObject itemJson = schemaJson.getJSONObject("items");
+            if (itemJson != null) {
+                schema.setItems(Schema.convertToSchema(itemJson));
+            }
+
+            JSONObject allOfJson = schemaJson.getJSONObject("allOf");
+            if (allOfJson != null) {
+                schema.setAllOf(Schema.convertToSchema(allOfJson));
+            }
+
+            JSONObject propertiesJson = schemaJson.getJSONObject("properties");
+            if (propertiesJson != null) {
+                schema.setProperties(Schema.convertToSchema(propertiesJson));
+            }
+
+            JSONObject additionalProperties = schemaJson.getJSONObject("additionalProperties");
+            if (additionalProperties != null) {
+                schema.setAdditionalProperties(Schema.convertToSchema(additionalProperties));
+            }
+
+            schema.setDiscriminator(schemaJson.getString("discriminator"));
+            schema.setReadOnly(schemaJson.getBoolean("readOnly"));
+
+            JSONObject xmlJson = schemaJson.getJSONObject("xml");
+            if (xmlJson != null) {
+                schema.setXml(Xml.convertToXml(xmlJson));
+            }
+
+            JSONObject externalDocumentationJson = schemaJson.getJSONObject("externalDocumentation");
+            if (externalDocumentationJson != null) {
+                schema.setExternalDocumentation(ExternalDocumentation.convertToExternalDocumentation(externalDocumentationJson));
+            }
+
+            schema.setExample(schemaJson.getString("example"));
+
+            return schema;
         }
     }
 
@@ -99,11 +165,11 @@ public class Schema {
         this.ref = ref;
     }
 
-    public Format getFormat() {
+    public String getFormat() {
         return format;
     }
 
-    public void setFormat(Format format) {
+    public void setFormat(String format) {
         this.format = format;
     }
 

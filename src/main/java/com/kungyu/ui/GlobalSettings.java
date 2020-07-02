@@ -3,7 +3,7 @@ package com.kungyu.ui;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.ui.Messages;
-import com.kungyu.model.v2.UrlPair;
+import com.kungyu.model.common.UrlPair;
 import com.kungyu.util.HttpUtil;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;

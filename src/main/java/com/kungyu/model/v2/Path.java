@@ -47,17 +47,13 @@ public class Path {
             // 获取到path路径
             // eg：/api/save
             String pathStr = iterator.next();
-            Object pathObject = jsonObject.get(pathStr);
-            if (!(pathObject instanceof JSONObject)) {
-                throw new BusinessException("解析path错误：检测到path主体不是JSONObject类型数据");
-            }
 
             Path path = new Path();
             path.setPath(pathStr);
 
             // 获取path下到method map
             // eg： {"/api/save":{"post",{}}}
-            JSONObject pathJson = (JSONObject) pathObject;
+            JSONObject pathJson = jsonObject.getJSONObject(pathStr);
             Set<String> methodKeySet = pathJson.keySet();
             if (CollectionUtils.isEmpty(methodKeySet)) {
                 return path;
