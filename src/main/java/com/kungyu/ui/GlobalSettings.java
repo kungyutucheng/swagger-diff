@@ -4,6 +4,8 @@ import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.ui.Messages;
 import com.kungyu.model.common.UrlPair;
+import com.kungyu.model.diff.DiffResult;
+import com.kungyu.task.DiffTask;
 import com.kungyu.util.HttpUtil;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
@@ -14,7 +16,10 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.awt.event.ItemEvent;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.FutureTask;
 
 /**
  * @author wengyongcheng
@@ -97,7 +102,7 @@ public class GlobalSettings implements Configurable, Configurable.Composite {
             }
         });
 
-        beginDiffBtn.addActionListener(e -> {
+        beginDiffBtn.addActionListener(event -> {
             String selectedProjectName = (String) projectCombox.getSelectedItem();
             if (StringUtils.isBlank(selectedProjectName)) {
                 Messages.showErrorDialog("请选中一个项目名称","对比错误");
@@ -113,8 +118,15 @@ public class GlobalSettings implements Configurable, Configurable.Composite {
                 Messages.showErrorDialog("后一个版本URL不能为空", "对比错误");
                 return;
             }
-            String newUrlResponseStr = HttpUtil.doPost(newUrl, null);
-            String oldUrlResponseStr = HttpUtil.doPost(oldUrl, null);
+
+            DiffTask diffTask = new DiffTask(newUrl, oldUrl);
+            FutureTask<List<DiffResult>> futureTask = new FutureTask<>(diffTask);
+            try {
+                futureTask.get();
+            } catch (Exception e) {
+                Messages.showErrorDialog(e.getMessage(),"执行对比异常");
+            }
+
 
         });
         return mainPanel;
