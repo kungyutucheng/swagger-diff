@@ -16,7 +16,7 @@ public class DiffResult {
 
     private String fieldName;
 
-    private ChangeType changeType;
+    private String changeType;
 
     private String desc;
 
@@ -52,11 +52,11 @@ public class DiffResult {
         this.fieldName = fieldName;
     }
 
-    public ChangeType getChangeType() {
+    public String getChangeType() {
         return changeType;
     }
 
-    public void setChangeType(ChangeType changeType) {
+    public void setChangeType(String changeType) {
         this.changeType = changeType;
     }
 

@@ -8,7 +8,6 @@ import com.kungyu.enums.SchemaType;
 import com.kungyu.model.diff.DiffResult;
 import com.kungyu.model.v2.*;
 import com.kungyu.util.HttpUtil;
-import gherkin.lexer.Pa;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -38,7 +37,11 @@ public class DiffTask implements Callable<List<DiffResult>> {
 
     private String currentDiffPath = null;
 
-    private String currentFieldName = null;
+    // 用于保存当前对比的对象名称
+    private ThreadLocal<String> currObjectName = new ThreadLocal<>();
+
+    // 用于保存当前对比的字段名称
+    private ThreadLocal<String> currFieldName = new ThreadLocal<>();
 
     public DiffTask(@NotNull String newUrl, @NotNull String origUrl) {
         this.newUrl = newUrl;
@@ -247,27 +250,87 @@ public class DiffTask implements Callable<List<DiffResult>> {
     }
 
     private void diffSchema(Schema newSchema, Schema origSchema, SchemaType schemaType) {
-        // 通过ref判断是否为引用，如果是，从definition中获取到对应到数据，接着对Definition中的Schema进行递归对比
-        if (StringUtils.isNotBlank(newSchema.getRef()) && StringUtils.isNotBlank(origSchema.getRef())) {
-            Schema newRefSchema = null;
-            Schema origRefSchema = null;
-            for (Definition definition : newDefinitionList) {
-                if (StringUtils.equals(definition.getName(),newSchema.getRef())) {
-                    newRefSchema = definition.getSchema();
-                    break;
+        // 保存原始字段名称，方便递归的时候可以持有当前字段名称
+        String origObjectName = currObjectName.get();
+        String origFieldName = currFieldName.get();
+        try {
+            // 通过ref判断是否为引用，如果是，从definition中获取到对应到数据，接着对Definition中的Schema进行递归对比
+            if (StringUtils.isNotBlank(newSchema.getRef()) && StringUtils.isNotBlank(origSchema.getRef())) {
+                Schema newRefSchema = null;
+                Schema origRefSchema = null;
+                for (Definition definition : newDefinitionList) {
+                    if (StringUtils.equals(definition.getName(), newSchema.getRef())) {
+                        newRefSchema = definition.getSchema();
+                        break;
+                    }
                 }
-            }
-            for (Definition definition : origDefinitionList) {
-                if (StringUtils.equals(definition.getName(),origSchema.getRef())) {
-                    origRefSchema = definition.getSchema();
-                    break;
+                for (Definition definition : origDefinitionList) {
+                    if (StringUtils.equals(definition.getName(), origSchema.getRef())) {
+                        origRefSchema = definition.getSchema();
+                        break;
+                    }
                 }
+                this.diffString(newSchema.getRef(), origRefSchema.getRef(), schemaType.toString() + ChangeType.OUTPUT_PARAMETER_NAME_MODIFY);
+                currObjectName.set(newSchema.getRef());
+                this.diffSchema(newRefSchema, origRefSchema, schemaType);
             }
-            this.diffString(newSchema.getRef(),origRefSchema.getRef(),ChangeType.OUTPUT_PARAMETER_NAME_MODIFY);
-            this.diffSchema(newRefSchema,origRefSchema,schemaType);
-        }
 
-        this.diffString(newSchema.getFormat(), origSchema.getFormat(), ChangeType.OUTPUT_HEADER_MULTIPLE_OF_MODIFY);
+            this.diffString(newSchema.getFormat(), origSchema.getFormat(), schemaType.toString() + ChangeType.SCHEMA_FORMAT_MODIFY.toString(),origObjectName);
+            this.diffString(newSchema.getTitle(), origSchema.getTitle(), schemaType.toString() + ChangeType.SCHEMA_TITLE_MODIFY.toString(),origObjectName);
+            this.diffString(newSchema.getDescription(), origSchema.getDescription(), schemaType.toString() + ChangeType.SCHEMA_DESC_MODIFY.toString(),origObjectName);
+            this.diffString(newSchema.getDefaultValue(), origSchema.getDefaultValue(), schemaType.toString() + ChangeType.SCHEMA_DEFAULT_VALUE_MODIFY.toString(),origObjectName);
+            this.diffBigDecimal(newSchema.getMultipleOf(), origSchema.getMultipleOf(), schemaType.toString() + ChangeType.SCHEMA_MULTIPLE_OF_MODIFY.toString(),origObjectName);
+            this.diffBigDecimal(newSchema.getMaximum(), origSchema.getMaximum(), schemaType.toString() + ChangeType.SCHEMA_MAXIMUM_MODIFY.toString(),origObjectName);
+            this.diffBoolean(newSchema.getExclusiveMaximum(), origSchema.getExclusiveMaximum(), schemaType.toString() + ChangeType.SCHEMA_EXCLUSIVE_MAXIMUM_MODIFY.toString(),origObjectName);
+            this.diffBigDecimal(newSchema.getMinimum(), origSchema.getMinimum(), schemaType.toString() + ChangeType.SCHEMA_MINIMUM_MODIFY.toString(),origObjectName);
+            this.diffBoolean(newSchema.getExclusiveMinimum(), origSchema.getExclusiveMinimum(), schemaType.toString() + ChangeType.SCHEMA_EXCLUSIVE_MINIMUM_MODIFY.toString(),origObjectName);
+            this.diffInteger(newSchema.getMaxLength(), origSchema.getMaxLength(), schemaType.toString() + ChangeType.SCHEMA_MAX_LENGTH_MODIFY.toString(),origObjectName);
+            this.diffInteger(newSchema.getMinLength(), origSchema.getMinLength(), schemaType.toString() + ChangeType.SCHEMA_MIN_LENGTH_MODIFY.toString(),origObjectName);
+            this.diffString(newSchema.getPattern(), origSchema.getPattern(), schemaType.toString() + ChangeType.SCHEMA_PATTERN_MODIFY.toString(),origObjectName);
+            this.diffInteger(newSchema.getMaxItems(), origSchema.getMaxItems(), schemaType.toString() + ChangeType.SCHEMA_MAX_ITEMS_MODIFY.toString(),origObjectName);
+            this.diffInteger(newSchema.getMinItems(), origSchema.getMinItems(), schemaType.toString() + ChangeType.OUTPUT_HEADER_MIN_ITEMS_MODIFY.toString(),origObjectName);
+            this.diffBoolean(newSchema.getUniqueItems(), origSchema.getUniqueItems(), schemaType.toString() + ChangeType.SCHEMA_UNIQUE_ITEMS_MODIFY.toString(),origObjectName);
+            this.diffInteger(newSchema.getMaxProperties(), origSchema.getMaxProperties(), schemaType.toString() + ChangeType.SCHEMA_MAX_PROPERTIES_MODIFY.toString(),origObjectName);
+            this.diffInteger(newSchema.getMinProperties(), origSchema.getMinProperties(), schemaType.toString() + ChangeType.SCHEMA_MIN_PROPERTIES_MODIFY.toString(),origObjectName);
+            this.diffBoolean(newSchema.getRequired(), origSchema.getRequired(), schemaType.toString() + ChangeType.SCHEMA_REQUIRED_MODIFY.toString(),origObjectName);
+            this.diffStringList(newSchema.getEnumValues(), origSchema.getEnumValues(), schemaType.toString() + ChangeType.OUTPUT_HEADER_ENUM_VALUES_MODIFY.toString(),origObjectName);
+            this.diffString(newSchema.getType(), origSchema.getType(), schemaType.toString() + ChangeType.SCHEMA_TYPE_MODIFY.toString(),origObjectName);
+            this.diffSchema(newSchema.getItems(), origSchema.getItems(), schemaType);
+            this.diffSchema(newSchema.getAllOf(), origSchema.getAllOf(), schemaType);
+
+            // 对比object中的属性
+            for (String newPropertyName : newSchema.getProperties().keySet()) {
+                if (origSchema.getProperties().containsKey(newPropertyName)) {
+                    currFieldName.set(newPropertyName);
+                    // 新旧版本共同持有的属性，进行具体对比
+                    this.diffSchema(newSchema.getProperties().get(newPropertyName), origSchema.getProperties().get(newPropertyName), schemaType);
+                } else {
+                    // 新增字段
+                    this.buildDiffResult(null, newPropertyName, ChangeType.OUTPUT_PARAMETER_ADD);
+                }
+            }
+
+            // 删除字段
+            for (String origPropertyName : origSchema.getProperties().keySet()) {
+                if (!newSchema.getProperties().containsKey(origPropertyName)) {
+                    this.buildDiffResult(origPropertyName,null,ChangeType.OUTPUT_PARAMETER_DELETE);
+                }
+            }
+
+            this.diffSchema(newSchema.getAdditionalProperties(), origSchema.getAdditionalProperties(), schemaType);
+        } finally {
+            // 还原数据到递归前
+            if (origObjectName != null) {
+                currObjectName.set(origObjectName);
+            } else {
+                currObjectName.remove();
+            }
+            if (origFieldName != null) {
+                currFieldName.set(origFieldName);
+            } else {
+                currFieldName.remove();
+            }
+        }
 
     }
 
@@ -315,6 +378,10 @@ public class DiffTask implements Callable<List<DiffResult>> {
     }
 
     private void diffDesc(String newDesc, String origDesc, ChangeType changeType) {
+        diffString(newDesc,origDesc,changeType.toString());
+    }
+
+    private void diffDesc(String newDesc, String origDesc, String changeType) {
         diffString(newDesc,origDesc,changeType);
     }
 
@@ -323,57 +390,105 @@ public class DiffTask implements Callable<List<DiffResult>> {
     }
 
     private void diffStringList(List<String> newList, List<String> origList, ChangeType changeType) {
+        diffStringList(newList,origList,changeType.toString());
+    }
+
+    private void diffStringList(List<String> newList, List<String> origList, String changeType) {
         diffString(newList.toString(),origList.toString(),changeType);
     }
 
+    private void diffStringList(List<String> newList, List<String> origList, String changeType,String desc) {
+        diffString(newList.toString(),origList.toString(),changeType, desc);
+    }
+
     private void diffString(String newString, String origString, ChangeType changeType) {
+        this.diffString(newString, origString, null, changeType.toString(), null);
+    }
+
+    private void diffString(String newString, String origString, String changeType) {
         this.diffString(newString, origString, null, changeType, null);
     }
 
+    private void diffString(String newString, String origString, String changeType, String desc) {
+        this.diffString(newString, origString, null, changeType, desc);
+    }
+
     private void diffString(String newString, String origString, String fieldName,ChangeType changeType, String desc) {
+        diffString(newString,origString,fieldName,changeType.toString(),desc);
+    }
+
+    private void diffString(String newString, String origString, String fieldName,String changeType, String desc) {
         if (StringUtils.equals(newString,origString)) {
             this.buildDiffResult(currentDiffPath,origString,newString,null,changeType,null);
         }
     }
 
     private void diffBigDecimal(BigDecimal newValue, BigDecimal origValue, ChangeType changeType) {
+        diffBigDecimal(newValue,origValue,changeType.toString());
+    }
+
+    private void diffBigDecimal(BigDecimal newValue, BigDecimal origValue, String changeType) {
+        diffBigDecimal(newValue,origValue,changeType,null);
+    }
+
+    private void diffBigDecimal(BigDecimal newValue, BigDecimal origValue, String changeType, String desc) {
         if (newValue == null && origValue != null) {
-            this.buildDiffResult(currentDiffPath, origValue.toString(), null, null, changeType, null);
+            this.buildDiffResult(currentDiffPath, origValue.toString(), null, null, changeType, desc);
         } else if (newValue != null && origValue == null) {
-            this.buildDiffResult(currentDiffPath, null, newValue.toString(), null, changeType, null);
+            this.buildDiffResult(currentDiffPath, null, newValue.toString(), null, changeType, desc);
         } else if (newValue != null){
             if (newValue.compareTo(origValue) != 0) {
-                this.buildDiffResult(currentDiffPath, origValue.toString(), newValue.toString(), null, changeType, null);
+                this.buildDiffResult(currentDiffPath, origValue.toString(), newValue.toString(), null, changeType, desc);
             }
         }
     }
 
     private void diffBoolean(Boolean newValue, Boolean origValue, ChangeType changeType) {
+        diffBoolean(newValue,origValue,changeType.toString());
+    }
+
+    private void diffBoolean(Boolean newValue, Boolean origValue, String changeType) {
+        diffBoolean(newValue, origValue, changeType, null);
+    }
+
+    private void diffBoolean(Boolean newValue, Boolean origValue, String changeType, String desc) {
         if (newValue == null && origValue != null) {
-            this.buildDiffResult(origValue + "", null, changeType);
+            this.buildDiffResult(origValue + "", null,changeType,desc);
         } else if (newValue != null && origValue == null) {
-            this.buildDiffResult(null, newValue + "", changeType);
+            this.buildDiffResult(null, newValue + "", changeType, desc);
         } else if (newValue != null) {
             this.buildDiffResult(origValue + "", newValue + "", changeType);
         }
     }
 
     private void diffInteger(Integer newValue, Integer origValue, ChangeType changeType) {
+        diffInteger(newValue,origValue,changeType.toString());
+    }
+
+    private void diffInteger(Integer newValue, Integer origValue, String changeType) {
+        diffInteger(newValue,origValue,changeType,null);
+    }
+
+    private void diffInteger(Integer newValue, Integer origValue, String changeType, String desc) {
         if (newValue == null && origValue != null) {
-            this.buildDiffResult(origValue + "", null, changeType);
+            this.buildDiffResult(origValue + "", null, changeType,null);
         } else if(newValue != null && origValue == null) {
-            this.buildDiffResult(null,newValue + "",changeType);
+            this.buildDiffResult(null,newValue + "",changeType,null);
         } else if (newValue != null) {
-            this.buildDiffResult(origValue + "", newValue + "",changeType);
+            this.buildDiffResult(origValue + "", newValue + "",changeType,null);
         }
     }
 
     private void buildDiffResult(String url, String origValue, String newValue, String fieldName, ChangeType changeType, String desc) {
+        buildDiffResult(url,origValue,newValue,fieldName,changeType.toString(),desc);
+    }
+
+    private void buildDiffResult(String url, String origValue, String newValue, String fieldName, String changeType, String desc) {
         DiffResult diffResult = new DiffResult();
         diffResult.setUrl(url);
         diffResult.setOrigValue(origValue);
         diffResult.setNewValue(newValue);
-        diffResult.setFieldName(fieldName);
+        diffResult.setFieldName(StringUtils.isBlank(fieldName) ? currFieldName.get() : fieldName);
         diffResult.setChangeType(changeType);
         diffResult.setDesc(desc);
         diffResultList.add(diffResult);
@@ -381,7 +496,15 @@ public class DiffTask implements Callable<List<DiffResult>> {
 
 
     private void buildDiffResult(String origValue, String newValue, ChangeType changeType) {
+        buildDiffResult(origValue,newValue,changeType.toString());
+    }
+
+    private void buildDiffResult(String origValue, String newValue, String changeType) {
         this.buildDiffResult(currentDiffPath,origValue,newValue,null,changeType,null);
+    }
+
+    private void buildDiffResult(String origValue, String newValue, String changeType, String desc) {
+        this.buildDiffResult(currentDiffPath,origValue,newValue,null,changeType,desc);
     }
 
 }
