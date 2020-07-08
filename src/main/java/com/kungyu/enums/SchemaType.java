@@ -7,7 +7,9 @@ package com.kungyu.enums;
 public enum SchemaType {
 
     PARAMETER("入参"),
-    RESPONSE("出参");
+    RESPONSE("出参"),
+    HEADER("header"),
+    ITEM("item");
 
     private String type;
 

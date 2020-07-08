@@ -3,6 +3,7 @@ package com.kungyu.task;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.kungyu.enums.ChangeType;
+import com.kungyu.enums.InType;
 import com.kungyu.enums.MethodType;
 import com.kungyu.enums.SchemaType;
 import com.kungyu.model.diff.DiffResult;
@@ -210,7 +211,7 @@ public class DiffTask implements Callable<List<DiffResult>> {
         diffString(newHeader.getType(), origHeader.getType(), ChangeType.OUTPUT_HEADER_TYPE_MODIFY);
         diffString(newHeader.getFormat(), origHeader.getFormat(), ChangeType.OUTPUT_HEADER_FORMAT_MODIFY);
 
-        diffItems(newHeader.getItems(), origHeader.getItems());
+        diffItems(newHeader.getItems(), origHeader.getItems(), SchemaType.RESPONSE.getType() + " " + SchemaType.HEADER.getType() + "");
 
         diffString(newHeader.getCollectionFormat(), origHeader.getCollectionFormat(), ChangeType.OUTPUT_HEADER_COLLECTION_FORMAT_MODIFY);
         diffString(newHeader.getDefaultValue(), origHeader.getDefaultValue(), ChangeType.OUTPUT_HEADER_DEFAULT_VALUE_MODIFY);
@@ -228,25 +229,25 @@ public class DiffTask implements Callable<List<DiffResult>> {
         diffBigDecimal(newHeader.getMultipleOf(),origHeader.getMultipleOf(),ChangeType.OUTPUT_HEADER_MULTIPLE_OF_MODIFY);
     }
 
-    private void diffItems(Item newItem, Item origItem) {
+    private void diffItems(Item newItem, Item origItem, String prefix) {
 
-        diffString(newItem.getType(), origItem.getType(), ChangeType.OUTPUT_HEADER_ITEM_TYPE_MODIFY);
-        diffString(newItem.getFormat(), origItem.getFormat(), ChangeType.OUTPUT_HEADER_ITEM_FORMAT_MODIFY);
+        diffString(newItem.getType(), origItem.getType(), prefix + ChangeType.SCHEMA_TYPE_MODIFY);
+        diffString(newItem.getFormat(), origItem.getFormat(), prefix + ChangeType.SCHEMA_FORMAT_MODIFY);
 
-        diffString(newItem.getCollectionFormat(), origItem.getCollectionFormat(), ChangeType.OUTPUT_HEADER_ITEM_COLLECTION_FORMAT_MODIFY);
-        diffString(newItem.getDefaultValue(), origItem.getDefaultValue(), ChangeType.OUTPUT_HEADER_ITEM_DEFAULT_VALUE_MODIFY);
-        diffBigDecimal(newItem.getMaximum(), origItem.getMaximum(), ChangeType.OUTPUT_HEADER_ITEM_MAXIMUM_MODIFY);
-        diffBoolean(newItem.getExclusiveMaximum(),origItem.getExclusiveMaximum(),ChangeType.OUTPUT_HEADER_ITEM_EXCLUSIVE_MAXIMUM_MODIFY);
-        diffBigDecimal(newItem.getMinimum(), origItem.getMinimum(), ChangeType.OUTPUT_HEADER_ITEM_MINIMUM_MODIFY);
-        diffBoolean(newItem.getExclusiveMinimum(), origItem.getExclusiveMinimum(), ChangeType.OUTPUT_HEADER_ITEM_EXCLUSIVE_MINIMUM_MODIFY);
-        diffInteger(newItem.getMaxLength(), origItem.getMaxLength(), ChangeType.OUTPUT_HEADER_ITEM_MAXLENGTH_MODIFY);
-        diffInteger(newItem.getMinLength(), origItem.getMinLength(), ChangeType.OUTPUT_HEADER_ITEM_MINLENGTH_MODIFY);
-        diffString(newItem.getPattern(), origItem.getPattern(), ChangeType.OUTPUT_HEADER_ITEM_PATTERN_MODIFY);
-        diffInteger(newItem.getMaxItems(), origItem.getMaxItems(), ChangeType.OUTPUT_HEADER_ITEM_MAX_ITEMS_MODIFY);
-        diffInteger(newItem.getMinItems(), origItem.getMinItems(), ChangeType.OUTPUT_HEADER_ITEM_MIN_ITEMS_MODIFY);
-        diffBoolean(newItem.getUniqueItems(), origItem.getUniqueItems(), ChangeType.OUTPUT_HEADER_ITEM_UNIQUE_ITEMS_MODIFY);
-        diffStringList(newItem.getEnumValues(), origItem.getEnumValues(), ChangeType.OUTPUT_HEADER_ITEM_ENUM_VALUES_MODIFY);
-        diffBigDecimal(newItem.getMultipleOf(),origItem.getMultipleOf(),ChangeType.OUTPUT_HEADER_ITEM_MULTIPLE_OF_MODIFY);
+        diffString(newItem.getCollectionFormat(), origItem.getCollectionFormat(), prefix + ChangeType.SCHEMA_COLLECTION_FORMAT_MODIFY);
+        diffString(newItem.getDefaultValue(), origItem.getDefaultValue(), prefix + ChangeType.SCHEMA_DEFAULT_VALUE_MODIFY);
+        diffBigDecimal(newItem.getMaximum(), origItem.getMaximum(), prefix + ChangeType.SCHEMA_MAXIMUM_MODIFY);
+        diffBoolean(newItem.getExclusiveMaximum(),origItem.getExclusiveMaximum(),prefix + ChangeType.SCHEMA_EXCLUSIVE_MAXIMUM_MODIFY);
+        diffBigDecimal(newItem.getMinimum(), origItem.getMinimum(), prefix + ChangeType.SCHEMA_MINIMUM_MODIFY);
+        diffBoolean(newItem.getExclusiveMinimum(), origItem.getExclusiveMinimum(), prefix + ChangeType.SCHEMA_EXCLUSIVE_MINIMUM_MODIFY);
+        diffInteger(newItem.getMaxLength(), origItem.getMaxLength(), prefix + ChangeType.SCHEMA_MAX_LENGTH_MODIFY);
+        diffInteger(newItem.getMinLength(), origItem.getMinLength(), prefix + ChangeType.SCHEMA_MIN_LENGTH_MODIFY);
+        diffString(newItem.getPattern(), origItem.getPattern(), prefix + ChangeType.SCHEMA_PATTERN_MODIFY);
+        diffInteger(newItem.getMaxItems(), origItem.getMaxItems(), prefix + ChangeType.SCHEMA_MAX_ITEMS_MODIFY);
+        diffInteger(newItem.getMinItems(), origItem.getMinItems(), prefix + ChangeType.SCHEMA_MIN_ITEMS_MODIFY);
+        diffBoolean(newItem.getUniqueItems(), origItem.getUniqueItems(), prefix + ChangeType.SCHEMA_UNIQUE_ITEMS_MODIFY);
+        diffStringList(newItem.getEnumValues(), origItem.getEnumValues(), prefix + ChangeType.SCHEMA_ENUM_VALUES_MODIFY);
+        diffBigDecimal(newItem.getMultipleOf(),origItem.getMultipleOf(),prefix + ChangeType.SCHEMA_MULTIPLE_OF_MODIFY);
     }
 
     private void diffSchema(Schema newSchema, Schema origSchema, SchemaType schemaType) {
@@ -270,31 +271,31 @@ public class DiffTask implements Callable<List<DiffResult>> {
                         break;
                     }
                 }
-                this.diffString(newSchema.getRef(), origRefSchema.getRef(), schemaType.toString() + ChangeType.OUTPUT_PARAMETER_NAME_MODIFY);
+                this.diffString(newSchema.getRef(), origRefSchema.getRef(), schemaType.getType() + ChangeType.PARAMETER_NAME_MODIFY.getName());
                 currObjectName.set(newSchema.getRef());
                 this.diffSchema(newRefSchema, origRefSchema, schemaType);
             }
 
-            this.diffString(newSchema.getFormat(), origSchema.getFormat(), schemaType.toString() + ChangeType.SCHEMA_FORMAT_MODIFY.toString(),origObjectName);
-            this.diffString(newSchema.getTitle(), origSchema.getTitle(), schemaType.toString() + ChangeType.SCHEMA_TITLE_MODIFY.toString(),origObjectName);
-            this.diffString(newSchema.getDescription(), origSchema.getDescription(), schemaType.toString() + ChangeType.SCHEMA_DESC_MODIFY.toString(),origObjectName);
-            this.diffString(newSchema.getDefaultValue(), origSchema.getDefaultValue(), schemaType.toString() + ChangeType.SCHEMA_DEFAULT_VALUE_MODIFY.toString(),origObjectName);
-            this.diffBigDecimal(newSchema.getMultipleOf(), origSchema.getMultipleOf(), schemaType.toString() + ChangeType.SCHEMA_MULTIPLE_OF_MODIFY.toString(),origObjectName);
-            this.diffBigDecimal(newSchema.getMaximum(), origSchema.getMaximum(), schemaType.toString() + ChangeType.SCHEMA_MAXIMUM_MODIFY.toString(),origObjectName);
-            this.diffBoolean(newSchema.getExclusiveMaximum(), origSchema.getExclusiveMaximum(), schemaType.toString() + ChangeType.SCHEMA_EXCLUSIVE_MAXIMUM_MODIFY.toString(),origObjectName);
-            this.diffBigDecimal(newSchema.getMinimum(), origSchema.getMinimum(), schemaType.toString() + ChangeType.SCHEMA_MINIMUM_MODIFY.toString(),origObjectName);
-            this.diffBoolean(newSchema.getExclusiveMinimum(), origSchema.getExclusiveMinimum(), schemaType.toString() + ChangeType.SCHEMA_EXCLUSIVE_MINIMUM_MODIFY.toString(),origObjectName);
-            this.diffInteger(newSchema.getMaxLength(), origSchema.getMaxLength(), schemaType.toString() + ChangeType.SCHEMA_MAX_LENGTH_MODIFY.toString(),origObjectName);
-            this.diffInteger(newSchema.getMinLength(), origSchema.getMinLength(), schemaType.toString() + ChangeType.SCHEMA_MIN_LENGTH_MODIFY.toString(),origObjectName);
-            this.diffString(newSchema.getPattern(), origSchema.getPattern(), schemaType.toString() + ChangeType.SCHEMA_PATTERN_MODIFY.toString(),origObjectName);
-            this.diffInteger(newSchema.getMaxItems(), origSchema.getMaxItems(), schemaType.toString() + ChangeType.SCHEMA_MAX_ITEMS_MODIFY.toString(),origObjectName);
-            this.diffInteger(newSchema.getMinItems(), origSchema.getMinItems(), schemaType.toString() + ChangeType.OUTPUT_HEADER_MIN_ITEMS_MODIFY.toString(),origObjectName);
-            this.diffBoolean(newSchema.getUniqueItems(), origSchema.getUniqueItems(), schemaType.toString() + ChangeType.SCHEMA_UNIQUE_ITEMS_MODIFY.toString(),origObjectName);
-            this.diffInteger(newSchema.getMaxProperties(), origSchema.getMaxProperties(), schemaType.toString() + ChangeType.SCHEMA_MAX_PROPERTIES_MODIFY.toString(),origObjectName);
-            this.diffInteger(newSchema.getMinProperties(), origSchema.getMinProperties(), schemaType.toString() + ChangeType.SCHEMA_MIN_PROPERTIES_MODIFY.toString(),origObjectName);
-            this.diffBoolean(newSchema.getRequired(), origSchema.getRequired(), schemaType.toString() + ChangeType.SCHEMA_REQUIRED_MODIFY.toString(),origObjectName);
-            this.diffStringList(newSchema.getEnumValues(), origSchema.getEnumValues(), schemaType.toString() + ChangeType.OUTPUT_HEADER_ENUM_VALUES_MODIFY.toString(),origObjectName);
-            this.diffString(newSchema.getType(), origSchema.getType(), schemaType.toString() + ChangeType.SCHEMA_TYPE_MODIFY.toString(),origObjectName);
+            this.diffString(newSchema.getFormat(), origSchema.getFormat(), schemaType.getType() + ChangeType.SCHEMA_FORMAT_MODIFY.getName(),origObjectName);
+            this.diffString(newSchema.getTitle(), origSchema.getTitle(), schemaType.getType() + ChangeType.SCHEMA_TITLE_MODIFY.getName(),origObjectName);
+            this.diffString(newSchema.getDescription(), origSchema.getDescription(), schemaType.getType() + ChangeType.SCHEMA_DESC_MODIFY.getName(),origObjectName);
+            this.diffString(newSchema.getDefaultValue(), origSchema.getDefaultValue(), schemaType.getType() + ChangeType.SCHEMA_DEFAULT_VALUE_MODIFY.getName(),origObjectName);
+            this.diffBigDecimal(newSchema.getMultipleOf(), origSchema.getMultipleOf(), schemaType.getType() + ChangeType.SCHEMA_MULTIPLE_OF_MODIFY.getName(),origObjectName);
+            this.diffBigDecimal(newSchema.getMaximum(), origSchema.getMaximum(), schemaType.getType() + ChangeType.SCHEMA_MAXIMUM_MODIFY.getName(),origObjectName);
+            this.diffBoolean(newSchema.getExclusiveMaximum(), origSchema.getExclusiveMaximum(), schemaType.getType() + ChangeType.SCHEMA_EXCLUSIVE_MAXIMUM_MODIFY.getName(),origObjectName);
+            this.diffBigDecimal(newSchema.getMinimum(), origSchema.getMinimum(), schemaType.getType() + ChangeType.SCHEMA_MINIMUM_MODIFY.getName(),origObjectName);
+            this.diffBoolean(newSchema.getExclusiveMinimum(), origSchema.getExclusiveMinimum(), schemaType.getType() + ChangeType.SCHEMA_EXCLUSIVE_MINIMUM_MODIFY.getName(),origObjectName);
+            this.diffInteger(newSchema.getMaxLength(), origSchema.getMaxLength(), schemaType.getType() + ChangeType.SCHEMA_MAX_LENGTH_MODIFY.getName(),origObjectName);
+            this.diffInteger(newSchema.getMinLength(), origSchema.getMinLength(), schemaType.getType() + ChangeType.SCHEMA_MIN_LENGTH_MODIFY.getName(),origObjectName);
+            this.diffString(newSchema.getPattern(), origSchema.getPattern(), schemaType.getType() + ChangeType.SCHEMA_PATTERN_MODIFY.getName(),origObjectName);
+            this.diffInteger(newSchema.getMaxItems(), origSchema.getMaxItems(), schemaType.getType() + ChangeType.SCHEMA_MAX_ITEMS_MODIFY.getName(),origObjectName);
+            this.diffInteger(newSchema.getMinItems(), origSchema.getMinItems(), schemaType.getType() + ChangeType.OUTPUT_HEADER_MIN_ITEMS_MODIFY.getName(),origObjectName);
+            this.diffBoolean(newSchema.getUniqueItems(), origSchema.getUniqueItems(), schemaType.getType() + ChangeType.SCHEMA_UNIQUE_ITEMS_MODIFY.getName(),origObjectName);
+            this.diffInteger(newSchema.getMaxProperties(), origSchema.getMaxProperties(), schemaType.getType() + ChangeType.SCHEMA_MAX_PROPERTIES_MODIFY.getName(),origObjectName);
+            this.diffInteger(newSchema.getMinProperties(), origSchema.getMinProperties(), schemaType.getType() + ChangeType.SCHEMA_MIN_PROPERTIES_MODIFY.getName(),origObjectName);
+            this.diffBoolean(newSchema.getRequired(), origSchema.getRequired(), schemaType.getType() + ChangeType.SCHEMA_REQUIRED_MODIFY.getName(),origObjectName);
+            this.diffStringList(newSchema.getEnumValues(), origSchema.getEnumValues(), schemaType.getType() + ChangeType.OUTPUT_HEADER_ENUM_VALUES_MODIFY.getName(),origObjectName);
+            this.diffString(newSchema.getType(), origSchema.getType(), schemaType.getType() + ChangeType.SCHEMA_TYPE_MODIFY.getName(),origObjectName);
             this.diffSchema(newSchema.getItems(), origSchema.getItems(), schemaType);
             this.diffSchema(newSchema.getAllOf(), origSchema.getAllOf(), schemaType);
 
@@ -306,18 +307,27 @@ public class DiffTask implements Callable<List<DiffResult>> {
                     this.diffSchema(newSchema.getProperties().get(newPropertyName), origSchema.getProperties().get(newPropertyName), schemaType);
                 } else {
                     // 新增字段
-                    this.buildDiffResult(null, newPropertyName, ChangeType.OUTPUT_PARAMETER_ADD);
+                    this.buildDiffResult(null, newPropertyName, schemaType.getType() + ChangeType.PARAMETER_ADD.getName());
                 }
             }
 
             // 删除字段
             for (String origPropertyName : origSchema.getProperties().keySet()) {
                 if (!newSchema.getProperties().containsKey(origPropertyName)) {
-                    this.buildDiffResult(origPropertyName,null,ChangeType.OUTPUT_PARAMETER_DELETE);
+                    this.buildDiffResult(origPropertyName,null, schemaType.getType() + ChangeType.PARAMETER_DELETE.getName());
                 }
             }
 
             this.diffSchema(newSchema.getAdditionalProperties(), origSchema.getAdditionalProperties(), schemaType);
+
+            this.diffString(newSchema.getDiscriminator(),origSchema.getDiscriminator(), schemaType.getType() + ChangeType.SCHEMA_DISCRIMINATOR_MODIFY.getName());
+            this.diffBoolean(newSchema.getReadOnly(),origSchema.getReadOnly(),schemaType.getType() + ChangeType.SCHEMA_READONLY_MODIFY.getName());
+
+            this.diffXml(newSchema.getXml(), origSchema.getXml(), schemaType);
+
+            this.diffExternalDocumentation(newSchema.getExternalDocumentation(), origSchema.getExternalDocumentation(), schemaType);
+            this.diffString(newSchema.getExample(),origSchema.getExample(),schemaType.getType() + ChangeType.SCHEMA_EXAMPLE_MODIFY.getName());
+
         } finally {
             // 还原数据到递归前
             if (origObjectName != null) {
@@ -332,6 +342,19 @@ public class DiffTask implements Callable<List<DiffResult>> {
             }
         }
 
+    }
+
+    private void diffExternalDocumentation(ExternalDocumentation newDoc, ExternalDocumentation origDoc, SchemaType schemaType) {
+        this.diffString(newDoc.getDescription(),origDoc.getDescription(),ChangeType.SCHEMA_EXTERNAL_DOCUMENTATION_DESC_MODIFY.getName());
+        this.diffString(newDoc.getUrl(),newDoc.getUrl(),schemaType.toString() + ChangeType.SCHEMA_EXTERNAL_DOCUMENTATION_URL_MODIFY.getName());
+    }
+
+    private void diffXml(Xml newXml, Xml origXml, SchemaType schemaType) {
+        this.diffString(newXml.getName(),origXml.getName(),schemaType.getType() + ChangeType.SCHEMA_XML_NAME_MODIFY.getName());
+        this.diffString(newXml.getNamespace(),origXml.getNamespace(),schemaType.getType() + ChangeType.SCHEMA_XML_NAMESPACE_MODIFY.getName());
+        this.diffString(newXml.getPrefix(),origXml.getPrefix(),schemaType.getType() + ChangeType.SCHEMA_XML_PREFIX_MODIFY.getName());
+        this.diffBoolean(newXml.getAttribute(),origXml.getAttribute(),schemaType.getType() + ChangeType.SCHEMA_XML_ATTRIBUTE_MODIFY.getName());
+        this.diffBoolean(newXml.getWrapped(),origXml.getWrapped(),schemaType.getType() + ChangeType.SCHEMA_XML_WRAPPED_MODIFY.getName());
     }
 
     private void diffParameter(List<Parameter> newParameters, List<Parameter> origParameters) {
@@ -370,11 +393,36 @@ public class DiffTask implements Callable<List<DiffResult>> {
     }
 
     private void doDiffParameter(Parameter newParameter, Parameter origParameter) {
+        SchemaType schemaType = SchemaType.RESPONSE;
+        this.diffString(newParameter.getDescription(), origParameter.getDescription(), schemaType.getType() + ChangeType.SCHEMA_DESC_MODIFY.getName());
+        this.diffBoolean(newParameter.getRequired(),origParameter.getRequired(),schemaType.getType() + ChangeType.SCHEMA_REQUIRED_MODIFY.getName());
+        if (newParameter.getIn() == InType.BODY) {
+            currObjectName.set(newParameter.getName());
+            this.diffSchema(newParameter.getSchema(),origParameter.getSchema(),schemaType);
+        }
 
+        this.diffString(newParameter.getType(), origParameter.getType(), schemaType.getType() + ChangeType.SCHEMA_TYPE_MODIFY.getName());
+        this.diffString(newParameter.getFormat(), origParameter.getFormat(), schemaType.getType() + ChangeType.SCHEMA_FORMAT_MODIFY.getName());
+        this.diffBoolean(newParameter.getAllowEmptyValue(), origParameter.getAllowEmptyValue(), schemaType.getType() + ChangeType.SCHEMA_ALLOW_EMPTY_VALUE_MODIFY.getName());
+        this.diffString(newParameter.getDefaultValue(), origParameter.getDefaultValue(), schemaType.getType() + ChangeType.SCHEMA_DEFAULT_VALUE_MODIFY.getName());
+        this.diffBigDecimal(newParameter.getMultipleOf(), origParameter.getMultipleOf(), schemaType.getType() + ChangeType.SCHEMA_MULTIPLE_OF_MODIFY.getName());
+        this.diffBigDecimal(newParameter.getMaximum(), origParameter.getMaximum(), schemaType.getType() + ChangeType.SCHEMA_MAXIMUM_MODIFY.getName());
+        this.diffBoolean(newParameter.getExclusiveMaximum(), origParameter.getExclusiveMaximum(), schemaType.getType() + ChangeType.SCHEMA_EXCLUSIVE_MAXIMUM_MODIFY.getName());
+        this.diffBigDecimal(newParameter.getMinimum(), origParameter.getMinimum(), schemaType.getType() + ChangeType.SCHEMA_MINIMUM_MODIFY.getName());
+        this.diffBoolean(newParameter.getExclusiveMinimum(), origParameter.getExclusiveMinimum(), schemaType.getType() + ChangeType.SCHEMA_EXCLUSIVE_MINIMUM_MODIFY.getName());
+        this.diffInteger(newParameter.getMaxLength(), origParameter.getMaxLength(), schemaType.getType() + ChangeType.SCHEMA_MAX_LENGTH_MODIFY.getName());
+        this.diffInteger(newParameter.getMinLength(), origParameter.getMinLength(), schemaType.getType() + ChangeType.SCHEMA_MIN_LENGTH_MODIFY.getName());
+        this.diffString(newParameter.getPattern(), origParameter.getPattern(), schemaType.getType() + ChangeType.SCHEMA_PATTERN_MODIFY.getName());
+        this.diffInteger(newParameter.getMaxItems(), origParameter.getMaxItems(), schemaType.getType() + ChangeType.SCHEMA_MAX_ITEMS_MODIFY.getName());
+        this.diffInteger(newParameter.getMinItems(), origParameter.getMinItems(), schemaType.getType() + ChangeType.OUTPUT_HEADER_MIN_ITEMS_MODIFY.getName());
+        this.diffBoolean(newParameter.getUniqueItems(), origParameter.getUniqueItems(), schemaType.getType() + ChangeType.SCHEMA_UNIQUE_ITEMS_MODIFY.getName());
+        this.diffBoolean(newParameter.getRequired(), origParameter.getRequired(), schemaType.getType() + ChangeType.SCHEMA_REQUIRED_MODIFY.getName());
+        this.diffStringList(newParameter.getEnumValues(), origParameter.getEnumValues(), schemaType.getType() + ChangeType.OUTPUT_HEADER_ENUM_VALUES_MODIFY.getName());
+        this.diffItems(newParameter.getItems(), origParameter.getItems(), schemaType.getType());
     }
 
-    private void diffConsumes(List<String> newConsumes, List<String> origCosumes, ChangeType changeType) {
-        diffStringList(newConsumes,origCosumes,changeType);
+    private void diffConsumes(List<String> newConsumes, List<String> origConsumes, ChangeType changeType) {
+        diffStringList(newConsumes,origConsumes,changeType);
     }
 
     private void diffDesc(String newDesc, String origDesc, ChangeType changeType) {
